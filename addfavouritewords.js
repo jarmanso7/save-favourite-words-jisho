@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Save Favourite Words Jisho
-// @version      1.0
+// @version      1.1
 // @description  Stores a list of jisho favourite words locally in the Userscript in-memory
 // @author       jarmanso7
 // @match        https://jisho.org/word/*
