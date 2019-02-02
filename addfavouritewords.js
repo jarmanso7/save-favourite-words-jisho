@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Save Favourite Words Jisho
-// @version      1.1
-// @description  Stores a list of jisho favourite words locally in the Userscript in-memory
+// @version      1.2
+// @description  Stores a list of jisho favourite words locally in the Userscript in-memory and lets the user download them in a file
 // @author       jarmanso7
 // @match        https://jisho.org/word/*
 // @match        https://jisho.org/users/*
@@ -9,6 +9,7 @@
 // @grant GM.getValue
 // @grant GM.deleteValue
 // @grant GM.listValues
+// @namespace https://greasyfork.org/users/241544
 // ==/UserScript==
 
 function AddRemoveWordLink(){
@@ -48,7 +49,6 @@ function AddRemoveWordLink(){
 
 function AddRemoveFavouriteWordEvent(word){
     (async () => {
-        debugger;
 
         let possiblyStoredWord = await GM.getValue(word , 0);
 
@@ -79,6 +79,7 @@ function ListWords(){
         var pageContainer = document.getElementById('page_container');
 
         var listOfWordsHeader = document.createElement('h3');
+		listOfWordsHeader.id = ('my-words-custom-h3');
         listOfWordsHeader.innerText = 'My Words';
         pageContainer.appendChild(listOfWordsHeader);
 
@@ -93,21 +94,54 @@ function ListWords(){
             pageContainer.appendChild(domWord);
             pageContainer.appendChild(document.createElement ( 'hr' ));
         }
+		
+		if (words.length > 0){
+			AddDownloadListInAFileLink(words);
+		}
 
     })();
+}
 
-    /*<div class="concept_light-representation">
-      <span class="text">
-        家
-      </span>
-    </div>*/
+function AddDownloadListInAFileLink(words){
+	/* ------------------------ GENERATE CUSTOM LINK ---------------------*/
+
+	//locate the brother node where to put the custom link to download the list of words next to
+	var brotherNode = document.getElementById('my-words-custom-h3');
+	
+	//insert the link
+	brotherNode.insertAdjacentHTML('afterend', '<a id="add-download-list-file-custom-link" class="concept_light-status_link">Download List</a>');
+
+	/* ------------------------ ACTIVATE CUSTOM LINK ---------------------*/
+	document.getElementById ("add-download-list-file-custom-link").addEventListener(
+		"click", ButtonClickAction, false
+	);
+
+	function ButtonClickAction (zEvent) {
+		AddDownloadListInAFileEvent(words);
+	}
+}
+
+function AddDownloadListInAFileEvent(words){
+
+	//generate comma-separated-values data
+	var data='';
+	    for (let word of words) {
+			data = data + word + ',';
+        }
+		
+	var a = document.createElement('a');
+	a.href = 'data:application/csv;charset=utf-8,' + encodeURIComponent(data);
+	//supported by chrome 14+ and firefox 20+
+	a.download = 'JishoMyWords ' + new Date().toLocaleString() + '.csv';
+	//needed for firefox
+	document.getElementsByTagName('body')[0].appendChild(a);
+	//supported by chrome 20+ and firefox 5+
+	a.click();
 }
 
 //Main function
 (function() {
     'use strict';
-
-    debugger;
 
     var jishoSection = decodeURIComponent(window.location.pathname.split('/')[1]);
 
